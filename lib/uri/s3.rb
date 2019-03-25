@@ -19,6 +19,11 @@ module URI
       Aws::S3::Client.new(client_options).get_object(get_params).download_file(filename, file_options)
     end
 
+    def self.build(bucket_name, key)
+      path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
+      URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
+    end
+
     private
 
     def s3_key
