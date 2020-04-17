@@ -5,7 +5,21 @@ require 'uri'
 module URI
   class S3 < Generic
     def s3_bucket(options = {})
-      @s3_bucket ||= s3_resource(options).bucket(host)
+      @s3_bucket ||= begin
+                       options[:region] = s3_region unless options.key?(:region)
+                       s3_resource(options).bucket(host)
+                     end
+    end
+
+    def s3_region
+      @s3_region ||= begin
+                       region = Aws::S3::Client.new.get_bucket_location(bucket: host).location_constraint
+                       if region.empty?
+                         "us-east-1"
+                       else
+                         region
+                       end
+                     end
     end
 
     def s3_object(options = {})
