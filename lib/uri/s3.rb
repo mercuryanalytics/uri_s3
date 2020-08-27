@@ -26,6 +26,18 @@ module URI
       @s3_object ||= s3_bucket(options).object(s3_key)
     end
 
+    def index(options = {})
+      params = { bucket: host, prefix: path[1..-1], max_keys: 1000 }
+      Enumerator.new do |yielder|
+        loop do
+          resp = s3_client(options).list_objects_v2(params)
+          resp.contents.each { |entry| yielder << entry }
+          break unless resp.is_truncated
+          params[:continuation_token] = resp.next_continuation_token
+        end
+      end
+    end
+
     def download_file(filename, options = {})
       client_options = options.fetch(:client, {})
       get_params = options.fetch(:params, {})
