@@ -33,6 +33,7 @@ module URI
           resp = s3_client(options).list_objects_v2(params)
           resp.contents.each { |entry| yielder << entry }
           break unless resp.is_truncated
+
           params[:continuation_token] = resp.next_continuation_token
         end
       end
@@ -53,9 +54,13 @@ module URI
       s3_object.upload_file(file, options)
     end
 
-    def self.build(bucket_name, key)
-      path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
-      URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
+    class << self
+      def build_s3(bucket_name, key = "/")
+        path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
+        URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
+      end
+
+      alias build build_s3
     end
 
     private
