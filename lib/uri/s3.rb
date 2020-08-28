@@ -38,6 +38,10 @@ module URI
       end
     end
 
+    def fetch(options = {})
+      s3_object(options).body
+    end
+
     def download_file(filename, options = {})
       client_options = options.fetch(:client, {})
       get_params = options.fetch(:params, {})
