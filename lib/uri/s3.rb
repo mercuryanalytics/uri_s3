@@ -29,8 +29,9 @@ module URI
     def index(options = {})
       params = { bucket: host, prefix: path[1..-1], max_keys: 1000 }
       Enumerator.new do |yielder|
+        client = Aws::S3::Client.new(options)
         loop do
-          resp = s3_client(options).list_objects_v2(params)
+          resp = client.list_objects_v2(params)
           resp.contents.each { |entry| yielder << entry }
           break unless resp.is_truncated
 
