@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'uri'
+require 'aws-sdk-s3'
 
 module URI
   class S3 < Generic
@@ -53,6 +54,14 @@ module URI
 
     def upload_file(file, options = {})
       s3_object.upload_file(file, options)
+    end
+
+    def to_http(expires_in: nil)
+      if expires_in.nil?
+        URI(s3_object.public_url)
+      else
+        URI(s3_object.presigned_url(:get, expires_in: expires_in))
+      end
     end
 
     class << self
