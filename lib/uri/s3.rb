@@ -64,6 +64,10 @@ module URI
       end
     end
 
+    def exists?
+      s3_object.exists?
+    end
+
     class << self
       def build_s3(bucket_name, key = "/")
         path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
