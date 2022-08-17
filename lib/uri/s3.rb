@@ -88,5 +88,9 @@ module URI
     end
   end
 
-  @@schemes['S3'] = S3
+  if respond_to?(:register_scheme)
+    register_scheme "S3", S3
+  else
+    @@schemes['S3'] = S3
+  end
 end
