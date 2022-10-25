@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "uri_s3/version"
 require "uri/s3"
 

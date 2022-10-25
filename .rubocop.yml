@@ -1,0 +1,91 @@
+require:
+  - rubocop-rspec
+  - rubocop-performance
+
+AllCops:
+  TargetRubyVersion: 2.2
+  NewCops: enable
+  Exclude:
+    - 'bin/*'
+    - 'db/schema.rb'
+    - 'lib/tasks/cucumber.rake'
+    - 'sandbox/**/*'
+    - 'public/dispatch.rb'
+    - 'db/migrate/20171101155729_change_viewer_resources_content_type_default.rb'
+    - 'db/migrate/004_create_videos.rb'
+    - 'db/migrate/20150615185944_add_parameters_to_questions.rb'
+    - 'db/migrate/20150615185944_add_parameters_to_questions.rb'
+    - 'db/migrate/20150615185944_add_parameters_to_questions.rb'
+    - 'db/migrate/20150615185944_add_parameters_to_questions.rb'
+    - 'db/migrate/20111208000220_create_background_tasks.rb'
+    - 'db/migrate/20121116203622_create_importers.rb'
+    - 'db/migrate/20170912230550_add_active_to_importer.rb'
+    - 'db/migrate/20171030150019_change_viewer_resources_default.rb'
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Style/RegexpLiteral:
+  EnforcedStyle: percent_r
+  AllowInnerSlashes: false
+  Exclude:
+    - 'features/**/*'
+
+Lint/AmbiguousRegexpLiteral:
+  Exclude:
+    - 'features/**/*'
+
+Style/BarePercentLiterals:
+  EnforcedStyle: percent_q
+
+Layout/SpaceInsideBlockBraces:
+  SpaceBeforeBlockParameters: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Metrics:
+  Enabled: false
+
+Layout/BeginEndAlignment:
+  EnforcedStyleAlignWith: begin
+
+Layout/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/LineLength:
+  Enabled: false
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/AccessorGrouping:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/YodaCondition:
+  EnforcedStyle: forbid_for_equality_operators_only
