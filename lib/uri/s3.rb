@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'aws-sdk-s3'
+require "uri"
+require "aws-sdk-s3"
 
 module URI
   class S3 < Generic
@@ -33,7 +33,7 @@ module URI
         client = Aws::S3::Client.new(options)
         loop do
           resp = client.list_objects_v2(params)
-          resp.contents.each { |entry| yielder << entry }
+          resp.contents.each {|entry| yielder << entry }
           break unless resp.is_truncated
 
           params[:continuation_token] = resp.next_continuation_token
@@ -64,13 +64,11 @@ module URI
       end
     end
 
-    def exists?
-      s3_object.exists?
-    end
+    delegate :exists?, to: :s3_object
 
     class << self
       def build_s3(bucket_name, key = "/")
-        path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
+        path = key.split("/").map {|component| URI.encode_www_form_component(component) }.join("/")
         URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
       end
 
@@ -91,6 +89,6 @@ module URI
   if respond_to?(:register_scheme)
     register_scheme "S3", S3
   else
-    @@schemes['S3'] = S3
+    @@schemes["S3"] = S3
   end
 end
