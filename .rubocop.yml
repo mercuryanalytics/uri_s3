@@ -67,3 +67,18 @@ Style/Documentation:
 
 Style/YodaCondition:
   EnforcedStyle: forbid_for_equality_operators_only
+
+Gemspec/RequireMFA:
+  Enabled: false
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+Style/NumericLiterals:
+  Enabled: false
+
+Style/SlicingWithRange:
+  Enabled: false
