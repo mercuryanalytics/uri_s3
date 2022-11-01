@@ -1,0 +1,218 @@
+# frozen_string_literal: true
+
+require "spec_helper"
+require "uri/s3"
+
+RSpec.describe URI::S3, type: :lib do
+  subject { URI("s3://bucket/path/file.ext") }
+
+  let(:client) { instance_double(Aws::S3::Client) }
+  let(:resource) { instance_double(Aws::S3::Resource) }
+
+  before do
+    Aws.config[:region] = "us-east-1"
+    Aws.config[:credentials] = Aws::SharedCredentials.new rescue nil # rubocop:disable Style/RescueModifier
+    allow(Aws::S3::Client).to receive(:new).and_return client
+    allow(Aws::S3::Resource).to receive(:new).and_return resource
+  end
+
+  it "registers the s3 scheme to uri class" do
+    expect(subject).to be_a described_class
+  end
+
+  describe "#index" do
+    let(:r1) do
+      Aws::S3::Types::ListObjectsV2Output.new(
+        { "is_truncated" => true,
+          "contents" => [
+            { "key" => "demos/fanfold/", "last_modified" => DateTime.parse("2021-05-04 18:42:50 UTC"), "etag" => "\"d41d8cd98f00b204e9800998ecf8427e\"", "size" => 0, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/0001.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:34 UTC"), "etag" => "\"46fb17ffa489d6ff304f39e044777628\"", "size" => 765482, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/0002.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:37 UTC"), "etag" => "\"4375caaaf9c60d30a1a5781ec26894a9\"", "size" => 1114195, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_1_50-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:41 UTC"), "etag" => "\"d3b9fb530f6b919f16908304dc3600b0\"", "size" => 443028, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_1_50-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:44 UTC"), "etag" => "\"1d1916b6d651b53163e7299ef50f1b21\"", "size" => 595314, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_1_55-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:47 UTC"), "etag" => "\"d1fccfd9a5073c0909fa611b5733612a\"", "size" => 436457, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_1_55-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:50 UTC"), "etag" => "\"6a1564369ba28d0a620a3c00e2f3f589\"", "size" => 610653, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_50-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:54 UTC"), "etag" => "\"2261e42b4b03846a1cee922e8774ea87\"", "size" => 341707, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_50-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:56 UTC"), "etag" => "\"df581371268cbff2fa017885bac1dc98\"", "size" => 562842, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_55-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:09:59 UTC"), "etag" => "\"4273acecece83fa2f561e91bcdc849d5\"", "size" => 354568, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_55-1_Bottom.jpg", "last_modified" => DateTime.parse("2021-05-13 19:58:45 UTC"), "etag" => "\"de9e3b3c1ba3b745f5595fffdcef2661\"", "size" => 427016, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_55-1_Top.jpg", "last_modified" => DateTime.parse("2021-05-13 19:58:45 UTC"), "etag" => "\"ea764d9966fd9128d96534eb1c7d7548\"", "size" => 106826, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_TOUCH_2_55-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:10:02 UTC"), "etag" => "\"a18a6e9eeb902d548bf1c63d28da0b23\"", "size" => 556932, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_VALPACK_50-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:10:05 UTC"), "etag" => "\"db80fce68bfb6d2d731e0fb9a759f468\"", "size" => 560527, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_VALPACK_50-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:10:08 UTC"), "etag" => "\"078812a9a3fbbaaefafcc3726aba176f\"", "size" => 604443, "storage_class" => "STANDARD" }
+          ],
+          "name" => "s3-assets.mercuryanalytics.com",
+          "prefix" => "demos/fanfold",
+          "max_keys" => 15,
+          "key_count" => 15,
+          "next_continuation_token" => "1x+dP66/E59stPuAADhi3L8oIjemP65OQFsZ2gkchEep7FLniGnHCSDinBPv77ikYfLV7WUwBPWUvm63sNZxQ0TAmhdJWd1F2e/PEQKHBoi4=" }
+      )
+    end
+
+    let(:r2) do
+      Aws::S3::Types::ListObjectsV2Output.new(
+        { "is_truncated" => false,
+          "contents" => [
+            { "key" => "demos/fanfold/4563_VALPACK_55-1 (1).jpg", "last_modified" => DateTime.parse("2021-05-13 19:40:54 UTC"), "etag" => "\"30979f36a2b9d4e8316af0e899e7679f\"", "size" => 557944, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_VALPACK_55-1.jpg", "last_modified" => DateTime.parse("2021-05-14 16:10:12 UTC"), "etag" => "\"30979f36a2b9d4e8316af0e899e7679f\"", "size" => 557944, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/4563_VALPACK_55-2.jpg", "last_modified" => DateTime.parse("2021-05-14 16:10:15 UTC"), "etag" => "\"3ce3bf7daba52a085bde3e7befaac776\"", "size" => 597508, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/fold.png", "last_modified" => DateTime.parse("2021-05-04 21:39:25 UTC"), "etag" => "\"e9080e126a578a607ea5caa239a2008b\"", "size" => 226322, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/index.html", "last_modified" => DateTime.parse("2021-05-04 21:55:24 UTC"), "etag" => "\"eacfbcb7542658bcc3b8c4d026496965\"", "size" => 752, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/main.png", "last_modified" => DateTime.parse("2021-05-04 21:39:26 UTC"), "etag" => "\"0bb73c97e6dd457756ab5c8c47bfb11a\"", "size" => 56752, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/paperfold.js", "last_modified" => DateTime.parse("2021-05-04 21:39:26 UTC"), "etag" => "\"7c718249be570dd190855d1d24323955\"", "size" => 8264, "storage_class" => "STANDARD" },
+            { "key" => "demos/fanfold/paperfold.min.js", "last_modified" => DateTime.parse("2021-05-05 23:22:09 UTC"), "etag" => "\"d68fe4bb9914c4c9fe6d47f3fd4fd8af\"", "size" => 3435, "storage_class" => "STANDARD" }
+          ],
+          "name" => "s3-assets.mercuryanalytics.com",
+          "prefix" => "demos/fanfold",
+          "max_keys" => 15,
+          "key_count" => 8,
+          "continuation_token" => "1x+dP66/E59stPuAADhi3L8oIjemP65OQFsZ2gkchEep7FLniGnHCSDinBPv77ikYfLV7WUwBPWUvm63sNZxQ0TAmhdJWd1F2e/PEQKHBoi4=" }
+      )
+    end
+
+    it do
+      allow(client).to receive(:list_objects_v2).and_return r1
+      allow(client).to receive(:list_objects_v2).with(hash_including(continuation_token: "1x+dP66/E59stPuAADhi3L8oIjemP65OQFsZ2gkchEep7FLniGnHCSDinBPv77ikYfLV7WUwBPWUvm63sNZxQ0TAmhdJWd1F2e/PEQKHBoi4=")).and_return r2
+      expect(subject.index.map {|e| e["key"] }.size).to eq [
+        "demos/fanfold/",
+        "demos/fanfold/0001.jpg",
+        "demos/fanfold/0002.jpg",
+        "demos/fanfold/4563_TOUCH_1_50-1.jpg",
+        "demos/fanfold/4563_TOUCH_1_50-2.jpg",
+        "demos/fanfold/4563_TOUCH_1_55-1.jpg",
+        "demos/fanfold/4563_TOUCH_1_55-2.jpg",
+        "demos/fanfold/4563_TOUCH_2_50-1.jpg",
+        "demos/fanfold/4563_TOUCH_2_50-2.jpg",
+        "demos/fanfold/4563_TOUCH_2_55-1.jpg",
+        "demos/fanfold/4563_TOUCH_2_55-1_Bottom.jpg",
+        "demos/fanfold/4563_TOUCH_2_55-1_Top.jpg",
+        "demos/fanfold/4563_TOUCH_2_55-2.jpg",
+        "demos/fanfold/4563_VALPACK_50-1.jpg",
+        "demos/fanfold/4563_VALPACK_50-2.jpg",
+        "demos/fanfold/4563_VALPACK_55-1 (1).jpg",
+        "demos/fanfold/4563_VALPACK_55-1.jpg",
+        "demos/fanfold/4563_VALPACK_55-2.jpg",
+        "demos/fanfold/fold.png",
+        "demos/fanfold/index.html",
+        "demos/fanfold/main.png",
+        "demos/fanfold/paperfold.js",
+        "demos/fanfold/paperfold.min.js"
+      ].size
+    end
+  end
+
+  describe "#download_file" do
+    let(:object_output) do
+      Aws::S3::Types::GetObjectOutput.new
+    end
+    let(:file) { "cat.jpg" }
+
+    before do
+      allow(client).to receive(:get_object).and_return object_output
+      without_partial_double_verification do
+        allow(object_output).to receive(:download_file).and_return file
+      end
+    end
+
+    it "gets the object from s3 bucket" do
+      subject.download_file(file)
+      expect(client).to have_received(:get_object)
+    end
+
+    it "downloads the file" do
+      subject.download_file(file)
+      without_partial_double_verification do
+        expect(object_output).to have_received(:download_file)
+      end
+    end
+  end
+
+  describe "#build" do
+    subject { described_class }
+
+    let(:scheme) { "s3" }
+    let(:bucket_name) { "test_bucket_name" }
+    let(:bucket_path) { "/path/to/somewhere" }
+
+    it "builds a URI::S3 object with correct scheme" do
+      expect(subject.build_s3("test_bucket_name", "path/to/somewhere").scheme).to eq scheme
+    end
+
+    it "builds a URI::S3 object with correct bucket name as host" do
+      expect(subject.build_s3("test_bucket_name", "path/to/somewhere").host).to eq bucket_name
+    end
+
+    it "builds a URI::S3 object with correct path to bucket" do
+      expect(subject.build_s3("test_bucket_name", "path/to/somewhere").path).to eq bucket_path
+    end
+
+    it "creates a URI:S3 object" do
+      expect(subject.build_s3("test_bucket_name", "path/to/somewhere")).to be_an_instance_of(described_class)
+    end
+  end
+
+  describe "methods modifying s3_object" do
+    let(:bucket_response) do
+      Aws::S3::Types::GetBucketLocationOutput.new({ location_constraint: "us-east-2" })
+    end
+
+    let(:bucket) { instance_double(Aws::S3::Bucket) }
+    let(:object) { instance_double(Aws::S3::Object) }
+
+    before do
+      allow(client).to receive(:get_bucket_location).and_return bucket_response
+      allow(resource).to receive(:bucket).and_return bucket
+      allow(bucket).to receive(:object).and_return object
+    end
+
+    describe "#fetch" do
+      it "fetches the contents of a bucket on s3" do
+        allow(object).to receive(:get).and_return Aws::S3::Types::GetObjectOutput.new({ body: StringIO.new("this is a test") })
+        expect(subject.fetch(client:).read).to eq "this is a test"
+      end
+    end
+
+    describe "#upload_file" do
+      let(:mdd) { File.read(file_fixture("small.mdd")) }
+
+      it "uploads a file to the s3 bucket" do
+        allow(object).to receive(:upload_file).and_return true
+        subject.upload_file(source: mdd)
+        expect(object).to have_received(:upload_file).with({ source: mdd }, {})
+      end
+    end
+
+    describe "to_http" do
+      it "retrieves a public url" do
+        allow(object).to receive(:public_url).and_return "https://bucket/path/file.ext"
+        subject.to_http
+        expect(object).to have_received(:public_url)
+      end
+
+      it "returns a http url" do
+        allow(object).to receive(:public_url).and_return "https://bucket/path/file.ext"
+        expect(subject.to_http).to be_an_instance_of(URI::HTTPS)
+      end
+
+      context "when passed an expiry duration" do
+        it "retrieves a privte url with an expiration" do
+          allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+          subject.to_http(expires_in: 5)
+          expect(object).to have_received(:presigned_url)
+        end
+
+        it "returns a presigned https url" do
+          allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+          expect(subject.to_http(expires_in: 5)).to be_an_instance_of(URI::HTTPS)
+        end
+      end
+    end
+
+    describe "#exists?" do
+      it "checks to make sure s3 object exists" do
+        allow(object).to receive(:exists?).and_return true
+        expect(subject.exists?).to be_truthy
+      end
+    end
+  end
+end
