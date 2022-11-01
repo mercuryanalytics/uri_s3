@@ -42,7 +42,7 @@ module URI
     end
 
     def fetch(options = {})
-      s3_object(options).body
+      s3_object(options).get.body
     end
 
     def download_file(filename, options = {})
