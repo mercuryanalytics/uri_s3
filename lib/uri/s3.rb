@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'aws-sdk-s3'
+require "uri"
+require "aws-sdk-s3"
 
 module URI
   class S3 < Generic
@@ -33,7 +33,7 @@ module URI
         client = Aws::S3::Client.new(options)
         loop do
           resp = client.list_objects_v2(params)
-          resp.contents.each { |entry| yielder << entry }
+          resp.contents.each {|entry| yielder << entry }
           break unless resp.is_truncated
 
           params[:continuation_token] = resp.next_continuation_token
@@ -56,11 +56,19 @@ module URI
       s3_object.upload_file(file, options)
     end
 
-    def to_http(expires_in: nil)
+    def to_http(expires_in: nil, **options)
       if expires_in.nil?
         URI(s3_object.public_url)
       else
-        URI(s3_object.presigned_url(:get, expires_in: expires_in))
+        URI(s3_object.presigned_url(:get, expires_in:, **options))
+      end
+    end
+
+    def upload_url(public_read: false, **options)
+      if public_read
+        URI(s3_object.presigned_url(:put, acl: "public-read", **options))
+      else
+        URI(s3_object.presigned_url(:put, **options))
       end
     end
 
@@ -70,7 +78,7 @@ module URI
 
     class << self
       def build_s3(bucket_name, key = "/")
-        path = key.split("/").map { |component|  URI.encode_www_form_component(component) }.join("/")
+        path = key.split("/").map {|component|  URI.encode_www_form_component(component) }.join("/")
         URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
       end
 
@@ -91,6 +99,6 @@ module URI
   if respond_to?(:register_scheme)
     register_scheme "S3", S3
   else
-    @@schemes['S3'] = S3
+    @@schemes["S3"] = S3
   end
 end

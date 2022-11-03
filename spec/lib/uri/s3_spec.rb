@@ -206,6 +206,34 @@ RSpec.describe URI::S3, type: :lib do
           expect(subject.to_http(expires_in: 5)).to be_an_instance_of(URI::HTTPS)
         end
       end
+
+      context "when passing **options as params" do
+        it "passes additional params to_http method" do
+          allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+          subject.to_http(expires_in: 5, response_content_disposition: :attachement)
+          expect(object).to have_received(:presigned_url)
+        end
+
+        it "adds appropriate options in params" do
+          allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+          subject.to_http(expires_in: 5, response_content_disposition: :attachement)
+          expect(object).to have_received(:presigned_url).with(:get, expires_in: 5, response_content_disposition: :attachement)
+        end
+      end
+    end
+
+    describe "upload_url" do
+      it "retrieves uri::s3 to upload object to s3 bucket" do
+        allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+        subject.upload_url(expires_in: 5)
+        expect(object).to have_received(:presigned_url)
+      end
+
+      it "passes canned acl param making url publicly accessible" do
+        allow(object).to receive(:presigned_url).and_return "https://bucket/path/file.ext"
+        subject.upload_url(public_read: true)
+        expect(object).to have_received(:presigned_url).with(:put, acl: "public-read")
+      end
     end
 
     describe "#exists?" do
