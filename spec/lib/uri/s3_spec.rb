@@ -242,5 +242,13 @@ RSpec.describe URI::S3, type: :lib do
         expect(subject.exists?).to be_truthy
       end
     end
+
+    describe "#destroy" do
+      it "destroys the s3 object" do
+        allow(object).to receive(:delete).and_return Aws::S3::Types::DeleteObjectOutput
+        subject.destroy
+        expect(object).to have_received(:delete)
+      end
+    end
   end
 end

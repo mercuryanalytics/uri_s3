@@ -76,9 +76,13 @@ module URI
       s3_object.exists?
     end
 
+    def destroy
+      s3_object.delete
+    end
+
     class << self
       def build_s3(bucket_name, key = "/")
-        path = key.split("/").map {|component|  URI.encode_www_form_component(component) }.join("/")
+        path = key.split("/").map {|component| URI.encode_www_form_component(component) }.join("/")
         URI::S3.new("s3", nil, bucket_name, nil, nil, "/#{path}", nil, nil, nil)
       end
 
