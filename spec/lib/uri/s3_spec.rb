@@ -127,6 +127,12 @@ RSpec.describe URI::S3, type: :lib do
     end
   end
 
+  describe "#key" do
+    it "pulls the path form subject and removes beginning /" do
+      expect(subject.key).to eq "path/file.ext"
+    end
+  end
+
   describe "#build" do
     subject { described_class }
 

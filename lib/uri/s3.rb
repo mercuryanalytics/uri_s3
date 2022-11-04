@@ -5,6 +5,9 @@ require "aws-sdk-s3"
 
 module URI
   class S3 < Generic
+
+    alias bucket_name host
+
     def s3_bucket(options = {})
       @s3_bucket ||= begin
                        options[:region] = s3_region unless options.key?(:region)
@@ -85,12 +88,15 @@ module URI
     end
 
     def permissions=(permission)
-      puts "permissions", permission.inspect
       s3_object.acl.put(acl: permission.to_s.tr("_", "-"))
     end
 
     def destroy
       s3_object.delete
+    end
+
+    def key
+      path[1..]
     end
 
     class << self
