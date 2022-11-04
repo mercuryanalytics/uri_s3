@@ -84,6 +84,11 @@ module URI
       s3_object.exists?
     end
 
+    def permissions=(permission)
+      puts "permissions", permission.inspect
+      s3_object.acl.put(acl: permission.to_s.tr("_", "-"))
+    end
+
     def destroy
       s3_object.delete
     end

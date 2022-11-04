@@ -260,6 +260,17 @@ RSpec.describe URI::S3, type: :lib do
       end
     end
 
+    describe "permissions=" do
+      let(:object_acl) { instance_double(Aws::S3::ObjectAcl) }
+
+      it "checks acl permissions on uri s3" do
+        allow(object).to receive(:acl).and_return object_acl
+        allow(object_acl).to receive(:put).and_return Aws::S3::Types::PutObjectAclOutput
+        subject.permissions = :public_read
+        expect(object_acl).to have_received(:put).with(acl: "public-read")
+      end
+    end
+
     describe "#destroy" do
       it "destroys the s3 object" do
         allow(object).to receive(:delete).and_return Aws::S3::Types::DeleteObjectOutput
