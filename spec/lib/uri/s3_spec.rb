@@ -180,11 +180,12 @@ RSpec.describe URI::S3, type: :lib do
     end
 
     describe "#put" do
-      let(:body_request) { { body: StringIO.new("this is a test") } }
+      let(:body_request) { StringIO.new("this is a test") }
+
       it "puts the body this is a test on s3 object body" do
-        allow(object).to receive(:put).with(body_request).and_return Aws::S3::Types::PutObjectOutput
-        subject.put(body_request)
-        expect(object).to have_received(:put).with(body_request)
+        allow(object).to receive(:put).with(body: body_request).and_return Aws::S3::Types::PutObjectOutput
+        subject.put(body: body_request)
+        expect(object).to have_received(:put).with(body: body_request)
       end
     end
 

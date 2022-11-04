@@ -49,8 +49,8 @@ module URI
       s3_object.get.body.read
     end
 
-    def put(body, **options)
-      s3_object.put(body, **options)
+    def put(body:, **options)
+      s3_object.put(body:, **options)
     end
 
     def download_file(filename, options = {})
