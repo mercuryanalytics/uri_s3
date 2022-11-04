@@ -45,6 +45,14 @@ module URI
       s3_object(options).get.body
     end
 
+    def get(options = {})
+      s3_object.get.body.read
+    end
+
+    def put(body, **options)
+      s3_object.put(body, **options)
+    end
+
     def download_file(filename, options = {})
       client_options = options.fetch(:client, {})
       get_params = options.fetch(:params, {})

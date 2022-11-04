@@ -172,6 +172,22 @@ RSpec.describe URI::S3, type: :lib do
       end
     end
 
+    describe "#get" do
+      it "gets and reads object from s3 bucket" do
+        allow(object).to receive(:get).and_return Aws::S3::Types::GetObjectOutput.new({ body: StringIO.new("this is a test") })
+        expect(subject.get).to eq "this is a test"
+      end
+    end
+
+    describe "#put" do
+      let(:body_request) { { body: StringIO.new("this is a test") } }
+      it "puts the body this is a test on s3 object body" do
+        allow(object).to receive(:put).with(body_request).and_return Aws::S3::Types::PutObjectOutput
+        subject.put(body_request)
+        expect(object).to have_received(:put).with(body_request)
+      end
+    end
+
     describe "#upload_file" do
       let(:mdd) { File.read(file_fixture("small.mdd")) }
 
