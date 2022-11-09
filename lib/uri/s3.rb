@@ -48,7 +48,7 @@ module URI
       s3_object(options).get.body
     end
 
-    def get(options = {})
+    def get
       s3_object.get.body.read
     end
 
@@ -87,8 +87,28 @@ module URI
       s3_object.exists?
     end
 
+    def content_type
+      s3_object.content_type
+    end
+
+    def content_type=(type)
+      s3_object.copy_from(s3_object, content_type: type, metadata_directive: "REPLACE")
+    end
+
+    def last_modified
+      s3_object.last_modified
+    end
+
+    def metadata
+      s3_object.metadata
+    end
+
     def permissions=(permission)
       s3_object.acl.put(acl: permission.to_s.tr("_", "-"))
+    end
+
+    def content_length
+      s3_object.content_length
     end
 
     def destroy

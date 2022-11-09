@@ -266,6 +266,14 @@ RSpec.describe URI::S3, type: :lib do
       end
     end
 
+    describe "#last_modified" do
+      it "returns the last time the s3 object was modified" do
+        time = Time.new(2022)
+        allow(object).to receive(:last_modified).and_return time
+        expect(subject.last_modified).to be time
+      end
+    end
+
     describe "permissions=" do
       let(:object_acl) { instance_double(Aws::S3::ObjectAcl) }
 
@@ -274,6 +282,15 @@ RSpec.describe URI::S3, type: :lib do
         allow(object_acl).to receive(:put).and_return Aws::S3::Types::PutObjectAclOutput
         subject.permissions = :public_read
         expect(object_acl).to have_received(:put).with(acl: "public-read")
+      end
+    end
+
+    describe "content_type=" do
+      it "checks acl permissions on uri s3" do
+        type = "application/json"
+        allow(object).to receive(:copy_from).and_return Aws::S3::Types::CopyObjectOutput
+        subject.content_type = type
+        expect(object).to have_received(:copy_from).with(object, content_type: type, metadata_directive: "REPLACE")
       end
     end
 
