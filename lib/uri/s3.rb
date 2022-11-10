@@ -107,6 +107,12 @@ module URI
       s3_object.acl.put(acl: permission.to_s.tr("_", "-"))
     end
 
+    def public?
+      s3_object.acl.grants.any? do |grant|
+        grant.grantee.uri == "http://acs.amazonaws.com/groups/global/AllUsers" && grant.permission == "READ"
+      end
+    end
+
     def content_length
       s3_object.content_length
     end

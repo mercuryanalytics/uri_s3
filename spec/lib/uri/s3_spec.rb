@@ -266,6 +266,24 @@ RSpec.describe URI::S3, type: :lib do
       end
     end
 
+    describe "public?" do
+      let(:object_acl) { instance_double(Aws::S3::ObjectAcl) }
+      let(:public_read_grant) { Aws::S3::Types::Grant.new(grantee: Aws::S3::Types::Grantee.new(uri: "http://acs.amazonaws.com/groups/global/AllUsers"), permission: "READ") }
+      let(:admin_grant) { Aws::S3::Types::Grant.new(grantee: Aws::S3::Types::Grantee.new( display_name: "admin" ), permission: "FULL_CONTROL") }
+
+      it "checks acl permissions on uri s3 are public" do
+        allow(object).to receive(:acl).and_return object_acl
+        allow(object_acl).to receive(:grants).and_return [admin_grant, public_read_grant]
+        expect(subject.public?).to be_truthy
+      end
+
+      it "checks acl permissions on uri s3 are public" do
+        allow(object).to receive(:acl).and_return object_acl
+        allow(object_acl).to receive(:grants).and_return [admin_grant]
+        expect(subject.public?).to be_falsey
+      end
+    end
+
     describe "#last_modified" do
       it "returns the last time the s3 object was modified" do
         time = Time.new(2022)
@@ -279,7 +297,7 @@ RSpec.describe URI::S3, type: :lib do
 
       it "checks acl permissions on uri s3" do
         allow(object).to receive(:acl).and_return object_acl
-        allow(object_acl).to receive(:put).and_return Aws::S3::Types::PutObjectAclOutput
+        allow(object_acl).to receive(:put).and_return Aws::S3::Types::PutObjectAclOutput.new
         subject.permissions = :public_read
         expect(object_acl).to have_received(:put).with(acl: "public-read")
       end
@@ -288,7 +306,7 @@ RSpec.describe URI::S3, type: :lib do
     describe "content_type=" do
       it "checks acl permissions on uri s3" do
         type = "application/json"
-        allow(object).to receive(:copy_from).and_return Aws::S3::Types::CopyObjectOutput
+        allow(object).to receive(:copy_from).and_return Aws::S3::Types::CopyObjectOutput.new
         subject.content_type = type
         expect(object).to have_received(:copy_from).with(object, content_type: type, metadata_directive: "REPLACE")
       end
@@ -296,7 +314,7 @@ RSpec.describe URI::S3, type: :lib do
 
     describe "#destroy" do
       it "destroys the s3 object" do
-        allow(object).to receive(:delete).and_return Aws::S3::Types::DeleteObjectOutput
+        allow(object).to receive(:delete).and_return Aws::S3::Types::DeleteObjectOutput.new
         subject.destroy
         expect(object).to have_received(:delete)
       end
