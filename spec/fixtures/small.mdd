@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="mdd.xslt"?>
+<xml>
+  <mdm:metadata xmlns:mdm="http://www.spss.com/mr/dm/metadatamodel/Arc 3/2000-02-04" mdm_createversion="5.0.3.3066" mdm_lastversion="5.0.3.3066" id="852f3206-336f-43a8-9808-70dc82300db1" data_version="9" data_sub_version="1" systemvariable="1">
+    <datasources default="mrRdbDsc2">
+      <connection name="mrRdbDsc2" dblocation="Provider=SQLOLEDB.1;Data Source=15549-40181;User ID=;Password=;Initial Catalog=MACAPRI;Integrated Security=SSPI;Persist Security Info=False" cdscname="mrRdbDsc2" project="MACAPRI" id="1"/>
+    </datasources>
+  </mdm:metadata>
+</xml>
