@@ -5,19 +5,18 @@ require "aws-sdk-s3"
 
 module URI
   class S3 < Generic
-
     alias bucket_name host
 
-    def s3_bucket(options = {})
+    def s3_bucket(**options)
       @s3_bucket ||= begin
                        options[:region] = s3_region unless options.key?(:region)
-                       s3_resource(options).bucket(host)
+                       s3_resource(**options).bucket(bucket_name)
                      end
     end
 
     def s3_region
       @s3_region ||= begin
-                       region = Aws::S3::Client.new.get_bucket_location(bucket: host).location_constraint
+                       region = s3_client.get_bucket_location(bucket: bucket_name).location_constraint
                        if region.empty?
                          "us-east-1"
                        else
@@ -26,14 +25,18 @@ module URI
                      end
     end
 
-    def s3_object(options = {})
-      @s3_object ||= s3_bucket(options).object(s3_key)
+    def s3_object(**options)
+      @s3_object ||= s3_bucket(**options).object(s3_key)
     end
 
-    def index(options = {})
-      params = { bucket: host, prefix: path[1..-1], max_keys: 1000 }
+    def s3_client(**options)
+      Aws::S3::Client.new(options)
+    end
+
+    def index(**options)
+      params = { bucket: bucket_name, prefix: key, max_keys: 1000 }
       Enumerator.new do |yielder|
-        client = Aws::S3::Client.new(options)
+        client = s3_client(**options)
         loop do
           resp = client.list_objects_v2(params)
           resp.contents.each {|entry| yielder << entry }
@@ -44,8 +47,8 @@ module URI
       end
     end
 
-    def fetch(options = {})
-      s3_object(options).get.body
+    def fetch(**options)
+      s3_object(**options).get.body
     end
 
     def get
@@ -56,14 +59,11 @@ module URI
       s3_object.put(body:, **options)
     end
 
-    def download_file(filename, options = {})
-      client_options = options.fetch(:client, {})
-      get_params = options.fetch(:params, {})
-      file_options = options.fetch(:file, {})
-      Aws::S3::Client.new(client_options).get_object(get_params).download_file(filename, file_options)
+    def download_file(filename)
+      s3_object.download_file(filename)
     end
 
-    def upload_file(file, options = {})
+    def upload_file(file, **options)
       s3_object.upload_file(file, options)
     end
 
@@ -140,7 +140,7 @@ module URI
       URI.decode_www_form_component(path[1..-1])
     end
 
-    def s3_resource(options = {})
+    def s3_resource(**options)
       @s3_resource ||= Aws::S3::Resource.new(options)
     end
   end

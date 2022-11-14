@@ -101,32 +101,6 @@ RSpec.describe URI::S3, type: :lib do
     end
   end
 
-  describe "#download_file" do
-    let(:object_output) do
-      Aws::S3::Types::GetObjectOutput.new
-    end
-    let(:file) { "cat.jpg" }
-
-    before do
-      allow(client).to receive(:get_object).and_return object_output
-      without_partial_double_verification do
-        allow(object_output).to receive(:download_file).and_return file
-      end
-    end
-
-    it "gets the object from s3 bucket" do
-      subject.download_file(file)
-      expect(client).to have_received(:get_object)
-    end
-
-    it "downloads the file" do
-      subject.download_file(file)
-      without_partial_double_verification do
-        expect(object_output).to have_received(:download_file)
-      end
-    end
-  end
-
   describe "#key" do
     it "pulls the path form subject and removes beginning /" do
       expect(subject.key).to eq "path/file.ext"
@@ -200,8 +174,18 @@ RSpec.describe URI::S3, type: :lib do
 
       it "uploads a file to the s3 bucket" do
         allow(object).to receive(:upload_file).and_return true
-        subject.upload_file(source: mdd)
-        expect(object).to have_received(:upload_file).with({ source: mdd }, {})
+        subject.upload_file(mdd)
+        expect(object).to have_received(:upload_file).with(mdd, {})
+      end
+    end
+
+    describe "#download_file" do
+      let(:file_path) { "/path/to/cat.jpg" }
+
+      it "downloads the file" do
+        allow(object).to receive(:download_file).and_return true
+        subject.download_file(file_path)
+        expect(object).to have_received(:download_file).with(file_path)
       end
     end
 
