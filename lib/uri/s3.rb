@@ -14,7 +14,7 @@ module URI
 
     def s3_region
       @s3_region ||= begin
-                       region = Aws::S3::Client.new.get_bucket_location(bucket: host).location_constraint
+                       region = Aws::S3::Client.new.head_bucket(bucket: host).bucket_region
                        if region.empty?
                          "us-east-1"
                        else
