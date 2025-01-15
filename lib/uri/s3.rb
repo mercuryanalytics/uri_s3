@@ -14,7 +14,8 @@ module URI
 
     def s3_region
       @s3_region ||= begin
-                       region = Aws::S3::Client.new.head_bucket(bucket: host).bucket_region
+                       resp = Aws::S3::Client.new.head_bucket(bucket: host)
+                       region = resp.respond_to?(:bucket_region) ? resp.bucket_region : "us-east-1"
                        if region.empty?
                          "us-east-1"
                        else
